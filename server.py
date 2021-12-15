@@ -11,10 +11,14 @@ def make_message(username: str, msg: str) -> str:
 
 @socket_io.event
 def connect(sio, env):
-    print("-----------")
     print("Connect ", sio)
-    print("-----------")
-    welcome_message = "hello %s , welcome to party room" % sio
+
+
+
+@socket_io.on("save_session")
+def save_user_session(sio, data):
+    socket_io.save_session(sio, data)
+    welcome_message = "hello %s , welcome to party room" % data["username"]
     socket_io.emit("message", welcome_message)
 
 
@@ -28,18 +32,29 @@ def my_message(sio, data):
 # room part
 @socket_io.on("enter_room")
 def add_sio_to_room(sio):
-    print("%s Entered the user_chat" % sio)
+    session = socket_io.get_session(sio)
+    username = session["username"]
+    print("%s Entered the user_chat" % username)
     socket_io.enter_room(sio, room="user_chat")
+    enter_message = "%s joined the group" % username
+    socket_io.emit("message", enter_message, room="user_chat", skip_sid=sio)
 
 
 @socket_io.on("exit_room")
 def remove_sio_from_room(sio):
-    print("%s Leaved the user_chat" % sio)
+    session = socket_io.get_session(sio)
+    username = session["usernamne"]
+    print("%s Leaved the user_chat" % username)
     socket_io.leave_room(sio, room="user_chat")
+    exit_message = "%s left the group" % username
+    socket_io.emit("message", exit_message, room="user_chat", skip_sid=sio)
 
 
 @socket_io.on("room_message")
 def message_in_room(sio, data):
+    session = socket_io.get_session(sio)
+    data = {"message": data,
+            "username": session["username"]}
     socket_io.emit("message", data, room="user_chat", skip_sid=sio)
 
 
