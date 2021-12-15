@@ -32,10 +32,13 @@ sio.emit("save_session", {"username": username,
                           "joinded_date": joined_date})
 sio.emit("enter_room")
 while not is_exiting:
-    message = input(">>> ")
+    message = input("[You] >>> ")
     if message == "leave_room":
         print("Leaving...")
         sio.emit("exit_room")
+    elif message == "want_superuser":
+        password = input("Enter Password: ")
+        sio.emit("superuser", {"password": password})
     elif message == "exit":
         is_exiting = True
         sio.disconnect()

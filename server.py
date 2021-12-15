@@ -1,12 +1,22 @@
 import socketio
 import eventlet
+from datetime import datetime
+from hashlib import sha256
 
 socket_io = socketio.Server()
 app = socketio.WSGIApp(socket_io)
+password_server = "ServerIsForFun"
+
+def make_password():
+    now_str = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
+    hashed_now_str = sha256(now_str.encode())
+    return hashed_now_str.hexdigest()
 
 
-def make_message(username: str, msg: str) -> str:
-    return "%s:%s" % (username, msg)
+def authenticate(password: str) -> bool:
+    if password == password_server:
+        return True
+    return False
 
 
 @socket_io.event
@@ -14,12 +24,26 @@ def connect(sio, env):
     print("Connect ", sio)
 
 
-
 @socket_io.on("save_session")
 def save_user_session(sio, data):
+    data["id"] = sio
     socket_io.save_session(sio, data)
     welcome_message = "hello %s , welcome to party room" % data["username"]
     socket_io.emit("message", welcome_message)
+
+
+@socket_io.on("superuser")
+def make_superuser(sio, data):
+    password = data["password"]
+    session = socket_io.get_session(sio)
+    data = {"username": "SERVER"}
+    if authenticate(password=password):
+        session["is_superuser"] = True
+        socket_io.save_session(sio, session)
+        data["message"] = "You are superuser now"
+    else:
+        data["message"] = "Password is invalid"    
+    socket_io.emit("message", data)
 
 
 @socket_io.on("message")
