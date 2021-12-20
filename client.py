@@ -18,6 +18,11 @@ def my_message(data):
     except:
         print("Message : ", data)
 
+@sio.on("left_the_group")
+def left_the_group():
+    sio.emit("exit_room")
+
+
 @sio.event
 def disconnect():
     print("Connection failed")
@@ -33,9 +38,14 @@ sio.emit("save_session", {"username": username,
 sio.emit("enter_room")
 while not is_exiting:
     message = input("[You] >>> ")
+
+    if message.startswith("remove"):
+        command, username = message.split(" ")
+        sio.emit("remove_user", {"username", username})
+
     if message == "leave_room":
         print("Leaving...")
-        sio.emit("exit_room")
+        left_the_group()
     elif message == "want_superuser":
         password = input("Enter Password: ")
         sio.emit("superuser", {"password": password})

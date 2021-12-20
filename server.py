@@ -46,6 +46,20 @@ def make_superuser(sio, data):
     socket_io.emit("message", data)
 
 
+@socket_io.on("remove_user")
+def remove_user_by_username(sio, data):
+    session = socket_io.get_session(sio)
+    username = data["username"]
+    if session["is_superuser"]:
+        socket_io.emit("left_the_group")
+        msg = "%s removed %s" % (session["username"], username)
+        print(msg)
+        data["message"] = msg
+        socket_io.emit("message", data=data, room="user_chat")
+    else:
+        socket_io.emit("message", {"username": "SERVER", "message": "You are not superuser"})
+
+
 @socket_io.on("message")
 def my_message(sio, data):
     print(data)
