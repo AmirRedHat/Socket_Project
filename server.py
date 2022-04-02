@@ -2,6 +2,7 @@ import socketio
 import eventlet
 from datetime import datetime
 from hashlib import sha256
+import os
 
 socket_io = socketio.Server()
 app = socketio.WSGIApp(socket_io)
@@ -62,7 +63,6 @@ def remove_user_by_username(sio, data):
 
 @socket_io.on("message")
 def my_message(sio, data):
-    print(data)
     username, data = data.split(":")
     print("Message from %s : " % username, data)
 
@@ -91,10 +91,25 @@ def remove_sio_from_room(sio):
 @socket_io.on("room_message")
 def message_in_room(sio, data):
     session = socket_io.get_session(sio)
-    data = {"message": data,
-            "username": session["username"]}
+    data = {"message": data, "username": session["username"]}
     socket_io.emit("message", data, room="user_chat", skip_sid=sio)
 
+
+@socket_io.on("media")
+def media_in_room(sio, data):
+    file_name = data["name"]
+    file_format = data["format"]
+    data = data["data"]
+    media_folder = "./media"
+    if not os.path.isdir(media_folder):
+        os.mkdir(media_folder)
+
+    path = "%s/%s.%s" % (media_folder, file_name, file_format)
+    with open(path, "wb") as _file:
+        _file.write(data)
+        _file.close()
+    print("file saved in ", path)
+    
 
 @socket_io.event
 def disconnect(sio):

@@ -52,6 +52,15 @@ while not is_exiting:
     elif message == "exit":
         is_exiting = True
         sio.disconnect()
+    elif message == "share_media":
+        path = input("Enter Path: ")
+        path = path.replace("\\", "/")
+        file_name = path.split("/")[-1]
+        file_format = file_name.split(".")[-1]
+        with open(path, "rb") as _file:
+            data = _file.read()
+            sio.emit("media", {"data": data, "format": file_format, "name": file_name})
+            _file.close()
     else:
         sio.emit("room_message", message)
 
