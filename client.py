@@ -18,6 +18,7 @@ def my_message(data):
     except:
         print("Message : ", data)
 
+
 @sio.on("left_the_group")
 def left_the_group():
     sio.emit("exit_room")
@@ -30,8 +31,20 @@ def disconnect():
 
 sio.connect("http://127.0.0.1:4000")
 
+login_or_signin = input("Login or SignIn? [L or S]: ")
+if login_or_signin.lower() == "l" or login_or_signin.lower() == "login":
+    username = input("enter username: ")
+    password = input("enter password: ")
+    sio.emit("authenticate", {"username": username, "password": password})
+elif login_or_signin.lower() == "s" or login_or_signin.lower() == "signin":
+    username = input("enter username: ")
+    password = input("enter password: ")
+    sio.emit("register", {"username": username, "password": password})
+else:
+    raise Exception("invalid parameter")
+
+
 is_exiting = False
-username = input("Enter a username: ")
 joined_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 sio.emit("save_session", {"username": username,
                           "joinded_date": joined_date})

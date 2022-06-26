@@ -4,25 +4,48 @@ from datetime import datetime
 from hashlib import sha256
 import os
 
+from backend import BackEnd
+
 socket_io = socketio.Server()
 app = socketio.WSGIApp(socket_io)
 password_server = "ServerIsForFun"
-
-def make_password():
-    now_str = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
-    hashed_now_str = sha256(now_str.encode())
-    return hashed_now_str.hexdigest()
+backend = BackEnd()
 
 
-def authenticate(password: str) -> bool:
-    if password == password_server:
-        return True
-    return False
+# def make_password():
+#     now_str = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
+#     hashed_now_str = sha256(now_str.encode())
+#     return hashed_now_str.hexdigest()
+
+
+# def authenticate(password: str) -> bool:
+#     if password == password_server:
+#         return True
+#     return False
 
 
 @socket_io.event
 def connect(sio, env):
     print("Connect ", sio)
+
+
+@socket_io.on("register")
+def register_user(sio, data):
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    is_done = backend.register(data["username"], data["password"], now)
+    if is_done[0]:
+        socket_io.emit("message", "you are registered!")
+    else:
+        socket_io.emit("message", "registration failed because : %s" % is_done[1])
+
+
+@socket_io.on("authenticate")
+def authenticate_user(self, data):
+    is_valid = backend.authenticate(data["username"], data["password"])
+    if is_valid:
+        socket_io.emit("message", "you are authenticated")
+    else:
+        socket_io.emit("message", "authentication failed")
 
 
 @socket_io.on("save_session")
@@ -38,12 +61,12 @@ def make_superuser(sio, data):
     password = data["password"]
     session = socket_io.get_session(sio)
     data = {"username": "SERVER"}
-    if authenticate(password=password):
+    if password == password_server:
         session["is_superuser"] = True
         socket_io.save_session(sio, session)
         data["message"] = "You are superuser now"
     else:
-        data["message"] = "Password is invalid"    
+        data["message"] = "Password is invalid"
     socket_io.emit("message", data)
 
 
@@ -109,7 +132,7 @@ def media_in_room(sio, data):
         _file.write(data)
         _file.close()
     print("file saved in ", path)
-    
+
 
 @socket_io.event
 def disconnect(sio):
