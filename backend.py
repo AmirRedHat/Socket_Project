@@ -1,5 +1,7 @@
 import hashlib
 
+from flask import Flask
+
 from database import DatabaseRouter
 
 
@@ -23,12 +25,3 @@ class BackEnd:
         is_done = db.write_user({"username": username, "password": password, "date_joined": date_joined})
         return is_done
 
-
-if __name__ == "__main__":
-
-    app = BackEnd()
-    print(app.authenticate("amir", "python"))
-
-    from datetime import datetime
-    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    # print(app.register("amir", "python", now))

@@ -7,16 +7,19 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>Document</title>
   </head>
-  <body>
-    <button onClick="sendMsg()">Hit Me</button>
+  <body onload="loading()">
+    <h1>Hello User</h1>
+    <input type="text" id="text_message" placeholder="Enter message ...">
+    <button onClick="send_message()">send</button>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
-    <script>
-      const socket = io("http://localhost:8080");
+    <hr/>
 
-      function sendMsg() {
-        socket.emit("message", "HELLO WORLD");
-      }
-    </script>
+    <div id="chat_history">
+        
+    </div>
+
+    <script src="static/socket.io.js"></script>
+    <script src="static/socket.js"></script>
+
   </body>
 </html>
